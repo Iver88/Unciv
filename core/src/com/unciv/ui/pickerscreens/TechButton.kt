@@ -5,6 +5,8 @@ import com.badlogic.gdx.scenes.scene2d.Touchable
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.utils.Align
 import com.unciv.logic.civilization.TechManager
+import com.unciv.models.ruleset.Ruleset
+import com.unciv.models.ruleset.tech.Technology
 import com.unciv.ui.utils.CameraStageBaseScreen
 import com.unciv.ui.utils.ImageGetter
 import com.unciv.ui.utils.surroundWithCircle
@@ -12,6 +14,8 @@ import com.unciv.ui.utils.toLabel
 
 class TechButton(techName:String, val techManager: TechManager, isWorldScreen: Boolean = true) : Table(CameraStageBaseScreen.skin) {
     val text= "".toLabel().apply { setAlignment(Align.center) }
+
+    private var techEnabledIconsCount: Int = 0
 
     init {
         touchable = Touchable.enabled
@@ -40,35 +44,68 @@ class TechButton(techName:String, val techManager: TechManager, isWorldScreen: B
     private fun addTechEnabledIcons(techName: String, isWorldScreen: Boolean, rightSide: Table) {
         val techEnabledIcons = Table()
         techEnabledIcons.defaults().pad(5f)
-        //rightSide.padRight(20f)
+        techEnabledIconsCount=0
 
         val civName = techManager.civInfo.civName
         val gameBasics = techManager.civInfo.gameInfo.ruleSet
 
-        val tech = gameBasics.technologies[techName]!!
+        val technologies = gameBasics.technologies[techName]!!
 
-        for (unit in tech.getEnabledUnits(techManager.civInfo))
-            techEnabledIcons.add(ImageGetter.getConstructionImage(unit.name).surroundWithCircle(30f))
-
-        for (building in tech.getEnabledBuildings(techManager.civInfo))
-            techEnabledIcons.add(ImageGetter.getConstructionImage(building.name).surroundWithCircle(30f))
-
-        for (improvement in gameBasics.tileImprovements.values
-                .filter { it.techRequired == techName || it.improvingTech == techName }
-                .filter { it.uniqueTo==null || it.uniqueTo==civName }) {
-            if (improvement.name.startsWith("Remove"))
-                techEnabledIcons.add(ImageGetter.getImage("OtherIcons/Stop")).size(30f)
-            else techEnabledIcons.add(ImageGetter.getImprovementIcon(improvement.name, 30f))
-        }
-
-        for (resource in gameBasics.tileResources.values.filter { it.revealedBy == techName })
-            techEnabledIcons.add(ImageGetter.getResourceImage(resource.name, 30f))
-
-        for (unique in tech.uniques)
-            techEnabledIcons.add(ImageGetter.getImage("OtherIcons/Star")
-                    .apply { color = Color.BLACK }.surroundWithCircle(30f))
+        addUnitIcons(technologies, techEnabledIcons)
+        addBuildingIcons(technologies, techEnabledIcons)
+        addImprovementIcons(gameBasics, techName, civName, techEnabledIcons)
+        addResourceIcons(gameBasics, techName, techEnabledIcons)
+        addUniqueIcons(technologies, techEnabledIcons)
 
         if (isWorldScreen) rightSide.add(techEnabledIcons)
-        else rightSide.add(techEnabledIcons).width(150f)
+        else rightSide.add(techEnabledIcons).width(150f+((techEnabledIconsCount-4)*50))
+    }
+
+    private fun addUniqueIcons(technologies: Technology, techEnabledIcons: Table) {
+        for (unique in technologies.uniques) {
+            techEnabledIcons.add(ImageGetter.getImage("OtherIcons/Star")
+                    .apply { color = Color.BLACK }.surroundWithCircle(30f))
+            addToTechEnabledIconsCount()
+        }
+    }
+
+    private fun addToTechEnabledIconsCount() {
+        techEnabledIconsCount++
+        println(techEnabledIconsCount)
+    }
+
+    private fun addResourceIcons(gameBasics: Ruleset, techName: String, techEnabledIcons: Table) {
+        for (resource in gameBasics.tileResources.values.filter { it.revealedBy == techName }) {
+            techEnabledIcons.add(ImageGetter.getResourceImage(resource.name, 30f))
+            addToTechEnabledIconsCount()
+        }
+    }
+
+    private fun addImprovementIcons(gameBasics: Ruleset, techName: String, civName: String, techEnabledIcons: Table) {
+        for (improvement in gameBasics.tileImprovements.values
+                .filter { it.techRequired == techName || it.improvingTech == techName }
+                .filter { it.uniqueTo == null || it.uniqueTo == civName }) {
+            if (improvement.name.startsWith("Remove")) {
+                techEnabledIcons.add(ImageGetter.getImage("OtherIcons/Stop")).size(30f)
+                addToTechEnabledIconsCount()
+            } else {
+                techEnabledIcons.add(ImageGetter.getImprovementIcon(improvement.name, 30f))
+                addToTechEnabledIconsCount()
+            }
+        }
+    }
+
+    private fun addBuildingIcons(technologies: Technology, techEnabledIcons: Table) {
+        for (building in technologies.getEnabledBuildings(techManager.civInfo)) {
+            techEnabledIcons.add(ImageGetter.getConstructionImage(building.name).surroundWithCircle(30f))
+            addToTechEnabledIconsCount()
+        }
+    }
+
+    private fun addUnitIcons(technologies: Technology, techEnabledIcons: Table) {
+        for (unit in technologies.getEnabledUnits(techManager.civInfo)) {
+            techEnabledIcons.add(ImageGetter.getConstructionImage(unit.name).surroundWithCircle(30f))
+            addToTechEnabledIconsCount()
+        }
     }
 }
