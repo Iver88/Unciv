@@ -28,8 +28,8 @@ class TechButton(techName:String, val techManager: TechManager, isWorldScreen: B
             add(ImageGetter.getProgressBarVertical(2f, 50f, percentComplete, Color.BLUE, Color.WHITE))
         } else add().width(2f)
 
-        if (isWorldScreen) rightSide.add(text).padBottom(5f).padRight(5f).row()
-        else rightSide.add(text).height(25f).padBottom(5f).padTop(10f).padRight(5f).row()
+        if (isWorldScreen) rightSide.add(text).padBottom(5f).padRight(10f).row()
+        else rightSide.add(text).height(25f).padBottom(5f).padTop(10f).padRight(10f).row()
 
         addTechEnabledIcons(techName, isWorldScreen, rightSide)
 
@@ -40,6 +40,7 @@ class TechButton(techName:String, val techManager: TechManager, isWorldScreen: B
     private fun addTechEnabledIcons(techName: String, isWorldScreen: Boolean, rightSide: Table) {
         val techEnabledIcons = Table()
         techEnabledIcons.defaults().pad(5f)
+        //rightSide.padRight(20f)
 
         val civName = techManager.civInfo.civName
         val gameBasics = techManager.civInfo.gameInfo.ruleSet
