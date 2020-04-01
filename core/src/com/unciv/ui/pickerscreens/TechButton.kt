@@ -12,10 +12,14 @@ import com.unciv.ui.utils.ImageGetter
 import com.unciv.ui.utils.surroundWithCircle
 import com.unciv.ui.utils.toLabel
 
-class TechButton(techName:String, val techManager: TechManager, isWorldScreen: Boolean = true) : Table(CameraStageBaseScreen.skin) {
+class TechButton(techName:String, val techManager: TechManager, isWorldScreen: Boolean = true, column: Int = 0) : Table(CameraStageBaseScreen.skin) {
     val text= "".toLabel().apply { setAlignment(Align.center) }
 
+    val column=column
+
     private var techEnabledIconsCount: Int = 0
+    private val rightSide=Table()
+    private val techEnabledIcons=Table()
 
     init {
         touchable = Touchable.enabled
@@ -24,7 +28,6 @@ class TechButton(techName:String, val techManager: TechManager, isWorldScreen: B
         if (ImageGetter.techIconExists(techName))
             add(ImageGetter.getTechIconGroup(techName, 60f))
 
-        val rightSide = Table()
         val techCost = techManager.costOfTech(techName)
         val remainingTech = techManager.remainingScienceToTech(techName)
         if (techCost != remainingTech) {
@@ -41,8 +44,11 @@ class TechButton(techName:String, val techManager: TechManager, isWorldScreen: B
         pack()
     }
 
+    public fun setTechButtonRightSideSize(width: Float){
+        rightSide.getCell(techEnabledIcons).width(width)
+    }
+
     private fun addTechEnabledIcons(techName: String, isWorldScreen: Boolean, rightSide: Table) {
-        val techEnabledIcons = Table()
         techEnabledIcons.defaults().pad(5f)
         techEnabledIconsCount=0
 
@@ -58,7 +64,7 @@ class TechButton(techName:String, val techManager: TechManager, isWorldScreen: B
         addUniqueIcons(technologies, techEnabledIcons)
 
         if (isWorldScreen) rightSide.add(techEnabledIcons)
-        else rightSide.add(techEnabledIcons).width(150f+((techEnabledIconsCount-4)*50))
+        else rightSide.add(techEnabledIcons)
     }
 
     private fun addUniqueIcons(technologies: Technology, techEnabledIcons: Table) {
@@ -71,7 +77,6 @@ class TechButton(techName:String, val techManager: TechManager, isWorldScreen: B
 
     private fun addToTechEnabledIconsCount() {
         techEnabledIconsCount++
-        println(techEnabledIconsCount)
     }
 
     private fun addResourceIcons(gameBasics: Ruleset, techName: String, techEnabledIcons: Table) {

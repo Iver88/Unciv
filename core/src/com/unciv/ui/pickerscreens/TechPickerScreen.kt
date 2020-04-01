@@ -36,6 +36,8 @@ class TechPickerScreen(internal val civInfo: CivilizationInfo, centerOnTech: Tec
 
     private val turnsToTech = civInfo.gameInfo.ruleSet.technologies.values.associateBy ({ it.name },{civTech.turnsToTech(it.name)})
 
+    private val columnsMaxWidth= mutableMapOf<Int?, Float>()
+
     constructor(freeTechPick: Boolean, civInfo: CivilizationInfo) : this(civInfo) {
         isFreeTechPick = freeTechPick
     }
@@ -50,6 +52,7 @@ class TechPickerScreen(internal val civInfo: CivilizationInfo, centerOnTech: Tec
         createTechTable()
 
         setButtonsInfo()
+        setButtonsSize()
         rightSideButton.setText("Pick a tech".tr())
         rightSideButton.onClick(UncivSound.Paper) {
             game.settings.addCompletedTutorialTask("Pick technology")
@@ -105,13 +108,22 @@ class TechPickerScreen(internal val civInfo: CivilizationInfo, centerOnTech: Tec
                     topTable.add() // empty cell
 
                 else {
-                    val techButton = TechButton(tech.name, civTech, false)
+                    val techButton = TechButton(tech.name, civTech, false, j)
 
                     techNameToButton[tech.name] = techButton
                     techButton.onClick { selectTechnology(tech, false) }
                     topTable.add(techButton)
                 }
             }
+        }
+    }
+
+    private fun setButtonsSize() {
+        for (techName in techNameToButton.keys) {
+            val techButton = techNameToButton[techName]!!
+
+            checkButtonWidthIsBiggest(techButton.column, techButton.width)
+            //techButton.setTechButtonRightSideSize(columnsMaxWidth[techButton.column]!!-60f-10f)
         }
     }
 
@@ -142,9 +154,14 @@ class TechPickerScreen(internal val civInfo: CivilizationInfo, centerOnTech: Tec
 
             techButton.text.setText(text)
         }
+        
+        //addConnectingLines()
+    }
 
-
-        addConnectingLines()
+    private fun checkButtonWidthIsBiggest(columnIndex: Int, width: Float){
+        if (columnsMaxWidth[columnIndex]==null || columnsMaxWidth[columnIndex]!! < width) {
+            columnsMaxWidth[columnIndex] = width
+        }
     }
 
     private fun addConnectingLines() {
@@ -199,6 +216,7 @@ class TechPickerScreen(internal val civInfo: CivilizationInfo, centerOnTech: Tec
         if (isFreeTechPick) {
             selectTechnologyForFreeTech(tech)
             setButtonsInfo()
+            setButtonsSize()
             return
         }
 
@@ -206,6 +224,7 @@ class TechPickerScreen(internal val civInfo: CivilizationInfo, centerOnTech: Tec
             rightSideButton.setText("Pick a tech".tr())
             rightSideButton.disable()
             setButtonsInfo()
+            setButtonsSize()
             return
         }
 
@@ -214,6 +233,7 @@ class TechPickerScreen(internal val civInfo: CivilizationInfo, centerOnTech: Tec
 
         pick("Research [${tempTechsToResearch[0]}]".tr())
         setButtonsInfo()
+        setButtonsSize()
     }
 
     private fun centerOnTechnology(tech: Technology) {
